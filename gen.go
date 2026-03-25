@@ -2,14 +2,20 @@ package bame
 
 import (
 	"bufio"
+	"fmt"
 	"math/rand"
 	"os"
 	"strings"
 	"unicode"
 )
 
-func getNamesFromFile(filename string) []string {
-	file, _ := os.Open(filename)
+func getNamesFromFile(filename string) ([]string, error) {
+	file, err := os.Open(filename)
+
+	if err != nil {
+		return nil, fmt.Errorf("Error opening file: %s", filename)
+	}
+
 	defer file.Close()
 
 	var words []string
@@ -21,9 +27,8 @@ func getNamesFromFile(filename string) []string {
 		words = append(words, strings.Fields(line)...)
 	}
 
-	return words
+	return words, nil
 }
-
 
 func getTransitionMatrix(names []string) map[rune][]rune {
 	matrix := make(map[rune][]rune)
@@ -42,7 +47,6 @@ func getTransitionMatrix(names []string) map[rune][]rune {
 	return matrix
 }
 
-
 func сapitan(s string) string {
 	if len(s) == 0 {
 		return ""
@@ -52,8 +56,7 @@ func сapitan(s string) string {
 	return string(runes)
 }
 
-
-func genBame(size int, matrix map[rune][]rune) (string) {
+func genBame(size int, matrix map[rune][]rune) string {
 	var s string
 	start_pull := make([]rune, 0, len(matrix))
 	for key := range matrix {
@@ -78,9 +81,17 @@ func genBame(size int, matrix map[rune][]rune) (string) {
 	return сapitan(s)
 }
 
+func GenBameFromFile(len int, filename string) (string, error) {
+	names, err := getNamesFromFile(filename)
 
-func GenBameFromFile(len int, filename string) (string) {
-	matrix := getTransitionMatrix(getNamesFromFile(filename))
-	return  genBame(len, matrix)
+	if err != nil {
+		return "", fmt.Errorf("Bame not generated -> %v", err)
+	}
+
+	if len < 1 {
+		return "", fmt.Errorf("Bame not generated -> Invalid length bame")
+	}
+
+	matrix := getTransitionMatrix(names)
+	return genBame(len, matrix), nil
 }
-
